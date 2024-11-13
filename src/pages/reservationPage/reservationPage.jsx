@@ -78,26 +78,51 @@ export default function ReservationPage() {
             });
     };
 
-    const handleConfirm = (reservationId) => {
-        setLoadingId(`confirm-${reservationId}`);
-        console.log(reservationId)
-        axios.put(`/api/reservations/${reservationId}`, { bikeStatus: 'RENTED' })
-            .then((response) => {
-                const updatedReservation = response.data;
+    const handleConfirm = async (reservationId, bikeId) => {
+        const data = {
+            bikeId: bikeId,
+            bikeStatus: 'RENTED',
+        };
 
-                setGetRes((prevReservations) =>
-                    prevReservations.map((res) =>
-                        res.id === reservationId ? { ...res, bikeStatus: updatedReservation.bikeStatus } : res
-                    )
-                );
-            })
-            .catch((error) => {
-                console.error('Error updating reservation:', error);
-            })
-            .finally(() => {
-                setLoadingId(null);
+        setLoadingId(`confirm-${reservationId}`);
+
+        try {
+            const updateStat = await new Promise((resolve, reject) => {
+                window.api.updateToRent(reservationId, data)
+                    .then(resolve)
+                    .catch(reject);
             });
+            // You can update the state or perform additional actions here
+            // setGetRes(updateStat.data);
+        } catch (error) {
+            console.error('Error updating reservation status:', error);
+        } finally {
+            setLoadingId(null);
+        }
     };
+    const handleReturn = async (reservationId, bikeId) => {
+        const data = {
+            bikeId: bikeId,
+            bikeStatus: 'vacant',
+        };
+
+        setLoadingId(`confirm-${reservationId}`);
+
+        try {
+            const updateStat = await new Promise((resolve, reject) => {
+                window.api.updateToVacant(reservationId, data)
+                    .then(resolve)
+                    .catch(reject);
+            });
+            // You can update the state or perform additional actions here
+            // setGetRes(updateStat.data);
+        } catch (error) {
+            console.error('Error updating reservation status:', error);
+        } finally {
+            setLoadingId(null);
+        }
+    };
+
 
     const filteredReservations = getRes.filter((reservation) => {
         const matchesSearchTerm = reservation.bike_id.toLowerCase().includes(searchTerm.toLowerCase());
@@ -206,7 +231,10 @@ export default function ReservationPage() {
                                         ? 'RENTED'
                                         : reservation.bikeStatus === 'CANCELED'
                                             ? 'CANCELED'
-                                            : 'RESERVED'}
+                                            : reservation.bikeStatus === 'COMPLETE'
+                                                ? 'COMPLETE'
+                                                : 'RESERVED'}
+                                            
                                 </Text>
                             </Flex>
 
@@ -295,7 +323,7 @@ export default function ReservationPage() {
 
                             {/* Buttons (Confirm and Cancel) */}
                             <Flex justify="flex-end" gap={3} position="absolute" mb={3} bottom="0px" right="10px">
-                                <Button
+                                {/*<Button
                                     colorScheme="red"
                                     backgroundColor="#f44336"
                                     size="sm"
@@ -306,19 +334,38 @@ export default function ReservationPage() {
                                     disabled={reservation.bikeStatus === 'RENTED' || reservation.bikeStatus === 'CANCELED'}
                                 >
                                     Cancel reservation
-                                </Button>
-                                <Button
-                                    colorScheme="green"
-                                    backgroundColor="#20c997"
-                                    size="sm"
-                                    borderRadius={12}
-                                    onClick={() => handleConfirm(reservation._id)}
-                                    isLoading={loadingId === `confirm-${reservation._id}`}
-                                    loadingText="Confirming..."
-                                    disabled={reservation.bikeStatus === 'RENTED' || reservation.bikeStatus === 'CANCELED'}
-                                >
-                                    Confirm reservation
-                                </Button>
+                                </Button>*/}
+                                {reservation.bikeStatus === 'RENTED' ? (
+                                    <Button
+                                        colorScheme="green"
+                                        backgroundColor="#20c997"
+                                        size="sm"
+                                        borderRadius={12}
+                                        onClick={() => handleReturn(reservation._id, reservation.bike_id)}
+                                        isLoading={loadingId === `confirm-${reservation._id}`}
+                                        loadingText="Confirming..."
+                                    >
+                                        Returned
+                                    </Button>
+                                ) : reservation.bikeStatus === 'RESERVED'? (
+                                    <Button
+                                        colorScheme="green"
+                                        backgroundColor="#20c997"
+                                        size="sm"
+                                        borderRadius={12}
+                                        onClick={() => handleConfirm(reservation._id, reservation.bike_id)}
+                                        isLoading={loadingId === `confirm-${reservation._id}`}
+                                        loadingText="Confirming..."
+                                        disabled={reservation.bikeStatus === 'RENTED' || reservation.bikeStatus === 'CANCELED'}
+                                    >
+                                        Confirm reservation
+                                    </Button>
+                                ):(
+                                    null
+                                )
+                                
+                                }
+
                             </Flex>
                         </Box>
                     ))}

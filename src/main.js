@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const axios = require('axios');
 const cloudinary = require('cloudinary').v2
 const path = require('node:path');
+const { datalist } = require('framer-motion/m');
 require('dotenv').config();
 
 cloudinary.config({
@@ -240,4 +241,22 @@ ipcMain.handle('get-reservations-five', async (event, data) => {
   }
 })
 
+ipcMain.handle('status-to-rent', async (event, reservationId, data) => {
+  try {
+    const response = await axios.put(`http://localhost:8917/updateBikeStatus/${reservationId}`, data)
+    console.log(response);  
+    return response.data;
+  } catch (error) {
+    console.error('Error updating reservation:', error);
+  }
+})
+ipcMain.handle('status-to-vacant', async (event, reservationId, data) => {
+  try {
+    const response = await axios.put(`http://localhost:8917/updateBikeStatusToVacant/${reservationId}`, data)
+    console.log(response);  
+    return response.data;
+  } catch (error) {
+    console.error('Error updating reservation:', error);
+  }
+})
 

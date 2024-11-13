@@ -19,6 +19,8 @@ contextBridge.exposeInMainWorld('api', {
     getReservations: () => ipcRenderer.invoke('get-reservations'),
     getReservationsALL: () => ipcRenderer.invoke('get-reservations-all'),
     getReservationsFIVE: () => ipcRenderer.invoke('get-reservations-five'),
+    updateToRent: (reservationId, data) => ipcRenderer.invoke('status-to-rent', reservationId, data),
+    updateToVacant: (reservationId, data) => ipcRenderer.invoke('status-to-vacant', reservationId, data),
 });
 
 ipcRenderer.on('account-found', (event, response) => {
