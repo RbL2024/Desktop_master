@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Text, Stack, Grid, GridItem, Flex, Button, Spinner, Input , Select} from '@chakra-ui/react';
+import { Box, Text, Stack, Grid, GridItem, Flex, Button, Spinner, Input, Select, Alert } from '@chakra-ui/react';
 import axios from 'axios';
 import { IconButton } from "@chakra-ui/react";
 import { SearchIcon } from "@chakra-ui/icons";
@@ -59,32 +59,11 @@ export default function ReservationPage() {
 
     const handleCancel = (reservationId) => {
         setLoadingId(`cancel-${reservationId}`);
-    
+
         axios.put(`/api/reservations/${reservationId}`, { bikeStatus: 'CANCELED' })
             .then((response) => {
                 const updatedReservation = response.data;
-    
-                setGetRes((prevReservations) =>
-                    prevReservations.map((res) =>
-                        res.id === reservationId ? { ...res, bikeStatus: updatedReservation.bikeStatus } : res
-                    )
-                );
-            })
-            .catch((error) => {
-                console.error('Error updating reservation:', error);
-            })
-            .finally(() => {
-                setLoadingId(null);
-            });
-    };
-    
-    const handleConfirm = (reservationId) => {
-        setLoadingId(`confirm-${reservationId}`);
-    
-        axios.put(`/api/reservations/${reservationId}`, { bikeStatus: 'RENTED' })
-            .then((response) => {
-                const updatedReservation = response.data;
-                
+
                 setGetRes((prevReservations) =>
                     prevReservations.map((res) =>
                         res.id === reservationId ? { ...res, bikeStatus: updatedReservation.bikeStatus } : res
@@ -99,7 +78,28 @@ export default function ReservationPage() {
             });
     };
 
-     const filteredReservations = getRes.filter((reservation) => {
+    const handleConfirm = (reservationId) => {
+        setLoadingId(`confirm-${reservationId}`);
+        console.log(reservationId)
+        axios.put(`/api/reservations/${reservationId}`, { bikeStatus: 'RENTED' })
+            .then((response) => {
+                const updatedReservation = response.data;
+
+                setGetRes((prevReservations) =>
+                    prevReservations.map((res) =>
+                        res.id === reservationId ? { ...res, bikeStatus: updatedReservation.bikeStatus } : res
+                    )
+                );
+            })
+            .catch((error) => {
+                console.error('Error updating reservation:', error);
+            })
+            .finally(() => {
+                setLoadingId(null);
+            });
+    };
+
+    const filteredReservations = getRes.filter((reservation) => {
         const matchesSearchTerm = reservation.bike_id.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = statusFilter ? reservation.bikeStatus === statusFilter : true;
         return matchesSearchTerm && matchesStatus;
@@ -107,56 +107,56 @@ export default function ReservationPage() {
 
     return (
         <Box p={3} textAlign="left">
-            
-           <Input
-        placeholder="Search by Bike ID"
-        width="200px"
-        background="lightgray"  // background color
-        borderRadius="8px"      // rounded corners
-        padding="8px 12px"
-        mb={5}     
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        boxShadow="0 2px 4px rgba(0, 0, 0, 0.1)"  // subtle shadow
-        _focus={{
-            borderColor: "#008CBA",  // Focus with blue color
-            boxShadow: "0 0 6px rgba(0, 140, 186, 0.3)", // Blue glow around input
-            borderWidth: "2px",
-            transition: "all 0.25s ease-in-out", // Focus transition
-        }}
-        _hover={{
-            borderColor: "#5F9EA0",  // Lighter border color when hovered
-            cursor: "pointer",       // Change the cursor to pointer on hover
-        }}
-        flexGrow={1}  // Allow input to take up available space
-    />
-    <IconButton
-        aria-label="Search"
-        icon={<SearchIcon />}
-        onClick={() => {/* Handle search logic */}}
-        ml={2}  // margin-left to give some spacing between the input and icon
-        background="transparent"
-        _hover={{
-            background: "transparent",
-            cursor: "pointer",
-        }}
-    /> 
-    <Select
-    placeholder="Filter by Status"
-    value={statusFilter}
-    onChange={(e) => setStatusFilter(e.target.value)}
-    ml={2}
-    top={-10}
-    left={40}
-    marginLeft={600}
-    marginTop={-19}
 
-    width="200px"
-    >
-    <option value="RENTED">RENTED</option>
-    <option value="CANCELED">CANCELED</option>
-    <option value="RESERVED">RESERVED</option>
-    </Select>
+            <Input
+                placeholder="Search by Bike ID"
+                width="200px"
+                background="lightgray"  // background color
+                borderRadius="8px"      // rounded corners
+                padding="8px 12px"
+                mb={5}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                boxShadow="0 2px 4px rgba(0, 0, 0, 0.1)"  // subtle shadow
+                _focus={{
+                    borderColor: "#008CBA",  // Focus with blue color
+                    boxShadow: "0 0 6px rgba(0, 140, 186, 0.3)", // Blue glow around input
+                    borderWidth: "2px",
+                    transition: "all 0.25s ease-in-out", // Focus transition
+                }}
+                _hover={{
+                    borderColor: "#5F9EA0",  // Lighter border color when hovered
+                    cursor: "pointer",       // Change the cursor to pointer on hover
+                }}
+                flexGrow={1}  // Allow input to take up available space
+            />
+            <IconButton
+                aria-label="Search"
+                icon={<SearchIcon />}
+                onClick={() => {/* Handle search logic */ }}
+                ml={2}  // margin-left to give some spacing between the input and icon
+                background="transparent"
+                _hover={{
+                    background: "transparent",
+                    cursor: "pointer",
+                }}
+            />
+            <Select
+                placeholder="Filter by Status"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                ml={2}
+                top={-10}
+                left={40}
+                marginLeft={600}
+                marginTop={-19}
+
+                width="200px"
+            >
+                <option value="RENTED">RENTED</option>
+                <option value="CANCELED">CANCELED</option>
+                <option value="RESERVED">RESERVED</option>
+            </Select>
 
             <Stack spacing={0}>
                 <Box height="calc(100vh - 150px)" overflowY="auto" mr={240} marginTop={-5}>
@@ -198,15 +198,15 @@ export default function ReservationPage() {
                                         reservation.bikeStatus === 'RENTED'
                                             ? '#2ECC71'
                                             : reservation.bikeStatus === 'CANCELED'
-                                            ? '#E74C3C'
-                                            : '#FFC107'
+                                                ? '#E74C3C'
+                                                : '#FFC107'
                                     }
                                 >
                                     {reservation.bikeStatus === 'RENTED'
                                         ? 'RENTED'
                                         : reservation.bikeStatus === 'CANCELED'
-                                        ? 'CANCELED'
-                                        : 'RESERVED'}
+                                            ? 'CANCELED'
+                                            : 'RESERVED'}
                                 </Text>
                             </Flex>
 
@@ -300,8 +300,8 @@ export default function ReservationPage() {
                                     backgroundColor="#f44336"
                                     size="sm"
                                     borderRadius={12}
-                                    onClick={() => handleCancel(reservation.id)}
-                                    isLoading={loadingId === `cancel-${reservation.id}`}
+                                    onClick={() => handleCancel(reservation._id)}
+                                    isLoading={loadingId === `cancel-${reservation._id}`}
                                     loadingText="Canceling..."
                                     disabled={reservation.bikeStatus === 'RENTED' || reservation.bikeStatus === 'CANCELED'}
                                 >
@@ -312,8 +312,8 @@ export default function ReservationPage() {
                                     backgroundColor="#20c997"
                                     size="sm"
                                     borderRadius={12}
-                                    onClick={() => handleConfirm(reservation.id)}
-                                    isLoading={loadingId === `confirm-${reservation.id}`}
+                                    onClick={() => handleConfirm(reservation._id)}
+                                    isLoading={loadingId === `confirm-${reservation._id}`}
                                     loadingText="Confirming..."
                                     disabled={reservation.bikeStatus === 'RENTED' || reservation.bikeStatus === 'CANCELED'}
                                 >
